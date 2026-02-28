@@ -1,0 +1,98 @@
+# Use with explicit project isolation:
+# docker compose -p property-manager -f docker-compose.production.yml ...
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: property_manager_api_prod_api
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+      RAILS_SERVE_STATIC_FILES: "true"
+      PORT: "3000"
+    command: ["./bin/rails", "server", "-e", "production", "-b", "0.0.0.0", "-p", "3000"]
+    ports:
+      - "127.0.0.1:${APP_HOST_PORT:-3011}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - property_manager_api_prod_storage:/rails/storage
+      - property_manager_api_prod_log:/rails/log
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/up || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  sidekiq:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: property_manager_api_prod_sidekiq
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+    command: ["bundle", "exec", "sidekiq"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - property_manager_api_prod_storage:/rails/storage
+      - property_manager_api_prod_log:/rails/log
+    healthcheck:
+      test: ["CMD-SHELL", "ps -ef | grep -q '[s]idekiq'"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  db:
+    image: postgres:16
+    container_name: property_manager_api_prod_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - property_manager_api_prod_postgres_data:/var/lib/postgresql/data
+      - /opt/property-manager-api/backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: property_manager_api_prod_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - property_manager_api_prod_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  property_manager_api_prod_postgres_data:
+  property_manager_api_prod_redis_data:
+  property_manager_api_prod_storage:
+  property_manager_api_prod_log:
