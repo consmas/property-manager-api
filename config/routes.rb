@@ -1,0 +1,38 @@
+Rails.application.routes.draw do
+  get "up" => "rails/health#show", as: :rails_health_check
+
+  namespace :api do
+    namespace :v1 do
+      post "auth/login", to: "auth#login"
+      post "auth/refresh", to: "auth#refresh"
+      delete "auth/logout", to: "auth#logout"
+      post "payment_webhooks/hubtel", to: "payment_webhooks#hubtel"
+      post "payment_webhooks/zeepay", to: "payment_webhooks#zeepay"
+
+      resources :properties, only: %i[index show]
+      resources :users, only: %i[index show create update]
+      resources :property_memberships, only: %i[index show create update]
+      resources :units, only: %i[index show create update]
+      resources :tenants, only: %i[index show create update]
+      resources :leases, only: %i[index show create update]
+      resources :rent_installments, only: %i[index show]
+      resources :invoices, only: %i[index show create update] do
+        resources :invoice_items, only: %i[create]
+      end
+      resources :invoice_items, only: %i[update destroy]
+      resources :payments, only: %i[index show create]
+      resources :online_payments, only: %i[index show create] do
+        member do
+          post :confirm
+          post :fail
+        end
+      end
+      resources :payment_allocations, only: %i[index show]
+      resources :meter_readings, only: %i[index show create update]
+      resources :pump_topups, only: %i[index show create update]
+      resources :maintenance_requests, only: %i[index show create update]
+      resources :audit_logs, only: %i[index show]
+      post "billing/water_invoices", to: "billing#create_water_invoices"
+    end
+  end
+end

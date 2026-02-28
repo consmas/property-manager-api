@@ -1,0 +1,49 @@
+module Api
+  module V1
+    class LeasesController < BaseController
+      def index
+        leases = scope_by_property(Lease.includes(:tenant, :unit, :rent_installments))
+        leases = leases.where(property_id: params[:property_id]) if params[:property_id].present?
+        leases = leases.where(status: params[:status]) if params[:status].present?
+
+        render_collection(leases.order(start_date: :desc))
+      end
+
+      def show
+        render_resource(scope_by_property(Lease.includes(:rent_installments)).find(params[:id]))
+      end
+
+      def create
+        lease = Lease.new(lease_params)
+        authorize_property_access!(lease.property_id)
+        return if performed?
+
+        Lease.transaction do
+          lease.save!
+          Leases::GenerateRentSchedule.call(lease:)
+        end
+
+        render_resource(lease, status: :created)
+      end
+
+      def update
+        lease = scope_by_property(Lease.all).find(params[:id])
+        lease.assign_attributes(lease_params)
+        lease.save!
+        Leases::GenerateRentSchedule.call(lease:) if lease.saved_change_to_plan_months? || lease.saved_change_to_rent_cents?
+
+        render_resource(lease)
+      end
+
+      private
+
+      def lease_params
+        extract_resource_params(
+          :lease,
+          :property_id, :unit_id, :tenant_id, :start_date, :end_date,
+          :plan_months, :status, :rent_cents, :security_deposit_cents
+        )
+      end
+    end
+  end
+end
