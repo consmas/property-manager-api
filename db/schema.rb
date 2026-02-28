@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_27_101500) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -300,9 +300,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_27_101500) do
     t.integer "monthly_rent_cents", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "unit_type", default: 0, null: false
     t.index ["property_id", "unit_number"], name: "index_units_on_property_id_and_unit_number", unique: true
+    t.index ["property_id", "unit_type"], name: "index_units_on_property_id_and_unit_type"
     t.index ["property_id"], name: "index_units_on_property_id"
     t.check_constraint "monthly_rent_cents >= 0", name: "chk_units_monthly_rent_non_negative"
+    t.check_constraint "unit_type = ANY (ARRAY[0, 1, 2])", name: "chk_units_unit_type_valid"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

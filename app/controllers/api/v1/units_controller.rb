@@ -39,9 +39,8 @@ module Api
           :property_id,
           :unit_number,
           :name,
+          :unit_type,
           :status,
-          :bedrooms,
-          :bathrooms,
           :monthly_rent_cents
         )
       end

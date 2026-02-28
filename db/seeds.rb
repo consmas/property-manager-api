@@ -66,9 +66,8 @@ ActiveRecord::Base.transaction do
   unit_a = Unit.find_or_initialize_by(property: property, unit_number: "A-101")
   unit_a.assign_attributes(
     name: "A Block 101",
+    unit_type: :two_bedroom_self_contain,
     status: :occupied,
-    bedrooms: 2,
-    bathrooms: 1,
     monthly_rent_cents: 185_000
   )
   unit_a.save!
