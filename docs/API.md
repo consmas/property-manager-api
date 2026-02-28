@@ -70,6 +70,11 @@ Add header:
 }
 ```
 
+`rent_cents` is monthly rent, but billing is generated as a single term invoice based on `plan_months`:
+- 3 months: `rent_cents * 3`
+- 6 months: `rent_cents * 6`
+- 12 months: `rent_cents * 12`
+
 ### Create Payment (auto allocation to oldest unpaid invoices)
 - `POST /api/v1/payments`
 

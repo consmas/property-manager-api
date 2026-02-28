@@ -26,6 +26,7 @@ module Payments
           invoice.balance_cents -= allocation
           invoice.status = invoice.balance_cents.zero? ? :paid : :partially_paid
           invoice.save!
+          sync_linked_installments!(invoice)
 
           amount_left -= allocation
 
@@ -78,7 +79,29 @@ module Payments
           .order(:due_date)
           .pluck(:due_date)
 
-        lease.update!(paid_through_date: paid_due_dates.max)
+        paid_through = if paid_due_dates.size == lease.rent_installments.count
+          lease.end_date
+        else
+          nil
+        end
+
+        lease.update!(paid_through_date: paid_through)
+      end
+    end
+
+    def self.sync_linked_installments!(invoice)
+      return unless invoice.invoice_type_rent?
+
+      RentInstallment.where(invoice_id: invoice.id).find_each do |installment|
+        installment_status = if invoice.status_paid?
+          :paid
+        elsif invoice.status_partially_paid?
+          :partially_paid
+        else
+          :unpaid
+        end
+
+        installment.update!(status: installment_status)
       end
     end
   end

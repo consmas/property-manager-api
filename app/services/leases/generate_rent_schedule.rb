@@ -6,21 +6,29 @@ module Leases
       lease.rent_installments.delete_all
       lease.invoices.where(invoice_type: :rent).delete_all
 
-      lease.plan_months.times do |idx|
-        due_date = lease.start_date.advance(months: idx)
-        invoice = build_rent_invoice!(lease:, due_date:, sequence_number: idx + 1)
+      due_date = lease.start_date
+      service_period_end = lease.start_date.advance(months: lease.plan_months) - 1.day
+      term_amount_cents = lease.rent_cents * lease.plan_months
 
-        lease.rent_installments.create!(
-          sequence_number: idx + 1,
-          due_date: due_date,
-          amount_cents: lease.rent_cents,
-          status: :unpaid,
-          invoice: invoice
-        )
-      end
+      invoice = build_rent_invoice!(
+        lease:,
+        due_date: due_date,
+        sequence_number: 1,
+        term_amount_cents: term_amount_cents,
+        service_period_start: lease.start_date,
+        service_period_end: service_period_end
+      )
+
+      lease.rent_installments.create!(
+        sequence_number: 1,
+        due_date: due_date,
+        amount_cents: term_amount_cents,
+        status: :unpaid,
+        invoice: invoice
+      )
     end
 
-    def self.build_rent_invoice!(lease:, due_date:, sequence_number:)
+    def self.build_rent_invoice!(lease:, due_date:, sequence_number:, term_amount_cents:, service_period_start:, service_period_end:)
       invoice = lease.invoices.create!(
         property: lease.property,
         unit: lease.unit,
@@ -28,20 +36,20 @@ module Leases
         invoice_number: "RNT-#{lease.id.first(6).upcase}-#{sequence_number.to_s.rjust(2, '0')}",
         invoice_type: :rent,
         status: :issued,
-        issue_date: due_date.beginning_of_month,
+        issue_date: due_date,
         due_date: due_date,
-        total_cents: lease.rent_cents,
-        balance_cents: lease.rent_cents
+        total_cents: term_amount_cents,
+        balance_cents: term_amount_cents
       )
 
       invoice.invoice_items.create!(
         item_type: :rent,
-        description: "Rent installment ##{sequence_number}",
+        description: "Rent for #{lease.plan_months}-month term",
         quantity: 1,
-        unit_amount_cents: lease.rent_cents,
-        line_total_cents: lease.rent_cents,
-        service_period_start: due_date.beginning_of_month,
-        service_period_end: due_date.end_of_month
+        unit_amount_cents: term_amount_cents,
+        line_total_cents: term_amount_cents,
+        service_period_start: service_period_start,
+        service_period_end: service_period_end
       )
 
       invoice
