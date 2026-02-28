@@ -19,6 +19,19 @@ class ApplicationController < ActionController::API
     render_jsonapi_errors([{ title: "Bad Request", detail: error.message }], status: :bad_request)
   end
 
+  rescue_from ArgumentError do |error|
+    render_jsonapi_errors([{ title: "Bad Request", detail: error.message }], status: :bad_request)
+  end
+
+  rescue_from ActiveRecord::StatementInvalid do |error|
+    detail = if error.message.match?(/invalid input syntax|InvalidTextRepresentation|malformed/)
+      "Invalid request payload format"
+    else
+      "Invalid database operation"
+    end
+    render_jsonapi_errors([{ title: "Bad Request", detail: detail }], status: :bad_request)
+  end
+
   rescue_from Auth::AuthenticateUser::AuthenticationError, Auth::RefreshSession::RefreshError do |error|
     render_jsonapi_errors([{ title: "Unauthorized", detail: error.message }], status: :unauthorized)
   end
