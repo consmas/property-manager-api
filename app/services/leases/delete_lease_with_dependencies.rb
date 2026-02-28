@@ -8,10 +8,11 @@ module Leases
         touched_payment_ids = delete_allocations_and_collect_payments!(invoice_ids)
         cleanup_orphaned_payments!(touched_payment_ids)
 
+        # Must remove installments before invoices due to rent_installments.invoice_id FK.
+        lease.rent_installments.delete_all
         InvoiceItem.where(invoice_id: invoice_ids).delete_all
         Invoice.where(id: invoice_ids).delete_all
 
-        lease.rent_installments.delete_all
         lease.destroy!
       end
     end
