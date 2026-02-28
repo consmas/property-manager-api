@@ -9,7 +9,7 @@ Rails.application.routes.draw do
       post "payment_webhooks/hubtel", to: "payment_webhooks#hubtel"
       post "payment_webhooks/zeepay", to: "payment_webhooks#zeepay"
 
-      resources :properties, only: %i[index show]
+      resources :properties, only: %i[index show create update]
       resources :users, only: %i[index show create update]
       resources :property_memberships, only: %i[index show create update]
       resources :units, only: %i[index show create update]
