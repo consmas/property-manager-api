@@ -1,6 +1,8 @@
 module Api
   module V1
     class LeasesController < BaseController
+      before_action :require_platform_admin!, only: %i[destroy]
+
       def index
         leases = scope_by_property(Lease.includes(:tenant, :unit, :rent_installments))
         leases = leases.where(property_id: params[:property_id]) if params[:property_id].present?
@@ -33,6 +35,12 @@ module Api
         Leases::GenerateRentSchedule.call(lease:) if lease.saved_change_to_plan_months? || lease.saved_change_to_rent_cents?
 
         render_resource(lease)
+      end
+
+      def destroy
+        lease = scope_by_property(Lease.all).find(params[:id])
+        Leases::DeleteLeaseWithDependencies.call(lease: lease)
+        head :no_content
       end
 
       private
