@@ -5,7 +5,7 @@ gem "rails", "~> 8.0.4"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
 gem "bcrypt", "~> 3.1"
-gem "jwt", "~> 2.9"
+gem "jwt", "~> 3.1"
 gem "sidekiq", "~> 8.1"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
