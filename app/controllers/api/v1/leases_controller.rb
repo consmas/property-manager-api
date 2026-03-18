@@ -32,7 +32,7 @@ module Api
         lease = scope_by_property(Lease.all).find(params[:id])
         lease.assign_attributes(lease_params)
         lease.save!
-        Leases::GenerateRentSchedule.call(lease:) if lease.saved_change_to_plan_months? || lease.saved_change_to_rent_cents?
+        Leases::GenerateRentSchedule.call(lease:) if lease.saved_change_to_plan_months? || lease.saved_change_to_rent? || lease.saved_change_to_start_date?
 
         render_resource(lease)
       end
@@ -49,7 +49,7 @@ module Api
         extract_resource_params(
           :lease,
           :property_id, :unit_id, :tenant_id, :start_date, :end_date,
-          :plan_months, :status, :rent_cents, :security_deposit_cents
+          :plan_months, :status, :rent, :security_deposit
         )
       end
     end

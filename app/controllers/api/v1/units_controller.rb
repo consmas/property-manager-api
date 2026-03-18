@@ -41,7 +41,7 @@ module Api
           :name,
           :unit_type,
           :status,
-          :monthly_rent_cents
+          :monthly_rent
         )
       end
     end

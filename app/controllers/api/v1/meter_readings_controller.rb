@@ -43,8 +43,8 @@ module Api
           :previous_reading,
           :current_reading,
           :consumption_units,
-          :rate_cents_per_unit,
-          :amount_cents,
+          :rate_per_unit,
+          :amount,
           :status
         )
       end

@@ -35,8 +35,8 @@ module Leases
     def self.cleanup_orphaned_payments!(payment_ids)
       Payment.where(id: payment_ids).find_each do |payment|
         if payment.payment_allocations.exists?
-          allocated_cents = payment.payment_allocations.sum(:amount_cents)
-          payment.update!(unallocated_cents: [payment.amount_cents - allocated_cents, 0].max)
+          allocated = payment.payment_allocations.sum(:amount)
+          payment.update!(unallocated: [payment.amount.to_d - allocated.to_d, 0].max.round(2))
         else
           OnlinePayment.where(payment_id: payment.id).update_all(payment_id: nil)
           payment.destroy!

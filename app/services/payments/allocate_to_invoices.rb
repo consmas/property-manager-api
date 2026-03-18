@@ -1,7 +1,7 @@
 module Payments
   class AllocateToInvoices
     def self.call(payment:, prioritized_invoice_ids: [])
-      amount_left = payment.unallocated_cents
+      amount_left = payment.unallocated.to_d
       return payment if amount_left <= 0
 
       prioritized, remaining = fetch_allocation_invoices(
@@ -14,17 +14,17 @@ module Payments
         invoices.each do |invoice|
           break if amount_left <= 0
 
-          allocation = [amount_left, invoice.balance_cents].min
+          allocation = [amount_left, invoice.balance.to_d].min
           next if allocation <= 0
 
           payment.payment_allocations.create!(
             invoice: invoice,
-            amount_cents: allocation,
+            amount: allocation,
             allocated_at: Time.current
           )
 
-          invoice.balance_cents -= allocation
-          invoice.status = invoice.balance_cents.zero? ? :paid : :partially_paid
+          invoice.balance = (invoice.balance.to_d - allocation).round(2)
+          invoice.status = invoice.balance.zero? ? :paid : :partially_paid
           invoice.save!
           sync_linked_installments!(invoice)
 
@@ -35,11 +35,11 @@ module Payments
             actor: payment.received_by_user,
             property: payment.property,
             auditable: invoice,
-            metadata: { payment_id: payment.id, allocated_cents: allocation }
+            metadata: { payment_id: payment.id, allocated_amount: allocation }
           )
         end
 
-        payment.update!(unallocated_cents: amount_left)
+        payment.update!(unallocated: amount_left.round(2))
 
         refresh_paid_through_dates!(invoices)
 
@@ -48,7 +48,7 @@ module Payments
           actor: payment.received_by_user,
           property: payment.property,
           auditable: payment,
-          metadata: { amount_cents: payment.amount_cents }
+          metadata: { amount: payment.amount }
         )
       end
 

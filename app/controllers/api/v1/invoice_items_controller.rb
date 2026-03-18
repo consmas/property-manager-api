@@ -42,27 +42,26 @@ module Api
           :item_type,
           :description,
           :quantity,
-          :unit_amount_cents,
-          :line_total_cents,
+          :unit_amount,
           :service_period_start,
           :service_period_end
         )
       end
 
       def recalculate_invoice!(invoice)
-        total = invoice.invoice_items.sum(:line_total_cents)
-        paid_amount = invoice.total_cents - invoice.balance_cents
-        new_balance = [total - paid_amount, 0].max
+        total = invoice.invoice_items.sum(:line_total)
+        paid_amount = invoice.total.to_d - invoice.balance.to_d
+        new_balance = [total.to_d - paid_amount, 0].max
 
         status = if new_balance.zero?
           :paid
-        elsif new_balance == total
+        elsif new_balance == total.to_d
           :issued
         else
           :partially_paid
         end
 
-        invoice.update!(total_cents: total, balance_cents: new_balance, status: status)
+        invoice.update!(total: total, balance: new_balance, status: status)
       end
     end
   end

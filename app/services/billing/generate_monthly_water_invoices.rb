@@ -20,16 +20,15 @@ module Billing
             status: :issued,
             issue_date: month_end,
             due_date: month_end + 7.days,
-            total_cents: reading.amount_cents,
-            balance_cents: reading.amount_cents
+            total: reading.amount,
+            balance: reading.amount
           )
 
           invoice.invoice_items.create!(
             item_type: :water,
             description: "Water usage for #{month_start.strftime('%B %Y')}",
             quantity: 1,
-            unit_amount_cents: reading.amount_cents,
-            line_total_cents: reading.amount_cents,
+            unit_amount: reading.amount,
             service_period_start: month_start,
             service_period_end: month_end
           )

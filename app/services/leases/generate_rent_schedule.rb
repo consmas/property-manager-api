@@ -8,13 +8,13 @@ module Leases
 
       due_date = lease.start_date
       service_period_end = lease.start_date.advance(months: lease.plan_months) - 1.day
-      term_amount_cents = lease.rent_cents * lease.plan_months
+      term_amount = (lease.rent * lease.plan_months).round(2)
 
       invoice = build_rent_invoice!(
         lease:,
         due_date: due_date,
         sequence_number: 1,
-        term_amount_cents: term_amount_cents,
+        term_amount: term_amount,
         service_period_start: lease.start_date,
         service_period_end: service_period_end
       )
@@ -22,13 +22,13 @@ module Leases
       lease.rent_installments.create!(
         sequence_number: 1,
         due_date: due_date,
-        amount_cents: term_amount_cents,
+        amount: term_amount,
         status: :unpaid,
         invoice: invoice
       )
     end
 
-    def self.build_rent_invoice!(lease:, due_date:, sequence_number:, term_amount_cents:, service_period_start:, service_period_end:)
+    def self.build_rent_invoice!(lease:, due_date:, sequence_number:, term_amount:, service_period_start:, service_period_end:)
       invoice = lease.invoices.create!(
         property: lease.property,
         unit: lease.unit,
@@ -38,16 +38,15 @@ module Leases
         status: :issued,
         issue_date: due_date,
         due_date: due_date,
-        total_cents: term_amount_cents,
-        balance_cents: term_amount_cents
+        total: term_amount,
+        balance: term_amount
       )
 
       invoice.invoice_items.create!(
         item_type: :rent,
         description: "Rent for #{lease.plan_months}-month term",
         quantity: 1,
-        unit_amount_cents: term_amount_cents,
-        line_total_cents: term_amount_cents,
+        unit_amount: term_amount,
         service_period_start: service_period_start,
         service_period_end: service_period_end
       )

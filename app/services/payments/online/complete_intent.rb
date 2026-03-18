@@ -14,8 +14,8 @@ module Payments
             reference: "ONL-#{online_payment.reference}",
             payment_method: channel_to_payment_method(online_payment.channel),
             status: :posted,
-            amount_cents: online_payment.amount_cents,
-            unallocated_cents: online_payment.amount_cents,
+            amount: online_payment.amount,
+            unallocated: online_payment.amount,
             paid_at: paid_at,
             notes: "Online payment via #{online_payment.provider}"
           )

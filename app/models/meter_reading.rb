@@ -16,8 +16,8 @@ class MeterReading < ApplicationRecord
   validates :reading_date, :current_reading, presence: true
   validates :current_reading, :consumption_units,
     numericality: { greater_than_or_equal_to: 0 }
-  validates :rate_cents_per_unit, :amount_cents,
-    numericality: { greater_than_or_equal_to: 0, only_integer: true }
+  validates :rate_per_unit, :amount,
+    numericality: { greater_than_or_equal_to: 0 }
 
   before_validation :compute_usage_and_amount
 
@@ -32,6 +32,6 @@ class MeterReading < ApplicationRecord
     usage = current_reading - prev
 
     self.consumption_units = usage.negative? ? 0 : usage
-    self.amount_cents = (consumption_units.to_d * rate_cents_per_unit).to_i
+    self.amount = (consumption_units.to_d * rate_per_unit.to_d).round(2)
   end
 end

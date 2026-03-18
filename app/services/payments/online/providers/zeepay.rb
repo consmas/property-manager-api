@@ -15,7 +15,7 @@ module Payments
 
           payload = {
             reference: online_payment.reference,
-            amount: format("%.2f", online_payment.amount_cents.to_f / 100),
+            amount: format("%.2f", online_payment.amount),
             currency: online_payment.currency,
             purpose: online_payment.purpose,
             callback_url: callback_url,

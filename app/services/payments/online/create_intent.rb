@@ -1,8 +1,8 @@
 module Payments
   module Online
     class CreateIntent
-      def self.call(property:, tenant:, invoice:, initiated_by_user:, amount_cents:, purpose:, channel:, provider: "hubtel")
-        validate_invoice!(property:, tenant:, invoice:, amount_cents:)
+      def self.call(property:, tenant:, invoice:, initiated_by_user:, amount:, purpose:, channel:, provider: "hubtel")
+        validate_invoice!(property:, tenant:, invoice:, amount:)
         provider = provider.to_s.downcase
 
         OnlinePayment.transaction do
@@ -17,7 +17,7 @@ module Payments
             purpose: purpose,
             channel: channel,
             status: :pending,
-            amount_cents: amount_cents,
+            amount: amount,
             currency: "GHS",
             expires_at: 30.minutes.from_now
           )
@@ -33,7 +33,7 @@ module Payments
         end
       end
 
-      def self.validate_invoice!(property:, tenant:, invoice:, amount_cents:)
+      def self.validate_invoice!(property:, tenant:, invoice:, amount:)
         return unless invoice
 
         raise ActiveRecord::RecordInvalid, invoice unless invoice.property_id == property.id
@@ -42,8 +42,8 @@ module Payments
           raise ActiveRecord::RecordInvalid, invoice
         end
 
-        raise ActiveRecord::RecordInvalid, invoice if invoice.balance_cents <= 0
-        raise ActiveRecord::RecordInvalid, invoice if amount_cents > invoice.balance_cents
+        raise ActiveRecord::RecordInvalid, invoice if invoice.balance.to_d <= 0
+        raise ActiveRecord::RecordInvalid, invoice if amount.to_d > invoice.balance.to_d
       end
     end
   end

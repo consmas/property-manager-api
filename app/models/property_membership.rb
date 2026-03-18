@@ -9,6 +9,7 @@ class PropertyMembership < ApplicationRecord
     tenant: 3
   }, prefix: true
 
+  validates :role, presence: true
   validates :user_id, uniqueness: { scope: :property_id }
 
   scope :active, -> { where(active: true) }

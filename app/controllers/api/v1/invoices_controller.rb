@@ -58,8 +58,8 @@ module Api
           :issue_date,
           :due_date,
           :currency,
-          :total_cents,
-          :balance_cents
+          :total,
+          :balance
         )
       end
 
@@ -70,8 +70,7 @@ module Api
             :item_type,
             :description,
             :quantity,
-            :unit_amount_cents,
-            :line_total_cents,
+            :unit_amount,
             :service_period_start,
             :service_period_end
           )
@@ -85,10 +84,10 @@ module Api
       end
 
       def recalculate_totals!(invoice)
-        total = invoice.invoice_items.sum(:line_total_cents)
-        return if total.zero? && invoice.total_cents.to_i.positive?
+        total = invoice.invoice_items.sum(:line_total)
+        return if total.zero? && invoice.total.to_d.positive?
 
-        invoice.update!(total_cents: total, balance_cents: total)
+        invoice.update!(total: total, balance: total)
       end
     end
   end

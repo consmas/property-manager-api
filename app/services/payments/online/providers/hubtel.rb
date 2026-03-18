@@ -18,7 +18,7 @@ module Payments
           ensure_presence!(callback_url, "HUBTEL_CALLBACK_URL is required")
 
           payload = {
-            amount: format("%.2f", online_payment.amount_cents.to_f / 100),
+            amount: format("%.2f", online_payment.amount),
             title: "PropertyManager Payment",
             description: online_payment.purpose,
             callbackUrl: callback_url,

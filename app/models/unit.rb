@@ -20,7 +20,7 @@ class Unit < ApplicationRecord
 
   validates :unit_number, presence: true, uniqueness: { scope: :property_id, case_sensitive: false }
   validates :unit_type, presence: true
-  validates :monthly_rent_cents, numericality: { greater_than_or_equal_to: 0, only_integer: true }
+  validates :monthly_rent, numericality: { greater_than_or_equal_to: 0 }
 
   scope :active, -> { where.not(status: statuses[:inactive]) }
 end

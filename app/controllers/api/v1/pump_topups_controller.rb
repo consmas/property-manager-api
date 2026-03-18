@@ -36,7 +36,7 @@ module Api
           :property_id,
           :topup_date,
           :quantity_liters,
-          :cost_cents,
+          :cost,
           :reference,
           :notes
         )

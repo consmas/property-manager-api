@@ -32,10 +32,10 @@ module Api
         extract_resource_params(
           :payment,
           :property_id, :tenant_id, :reference, :payment_method,
-          :status, :amount_cents, :unallocated_cents, :paid_at, :notes
+          :status, :amount, :unallocated, :paid_at, :notes
         ).tap do |attrs|
           attrs[:received_by_user_id] = Current.user.id
-          attrs[:unallocated_cents] ||= attrs[:amount_cents]
+          attrs[:unallocated] ||= attrs[:amount]
         end
       end
     end

@@ -21,6 +21,6 @@ class Payment < ApplicationRecord
 
   validates :reference, :paid_at, presence: true
   validates :reference, uniqueness: true
-  validates :amount_cents, :unallocated_cents,
-    numericality: { greater_than_or_equal_to: 0, only_integer: true }
+  validates :amount, :unallocated,
+    numericality: { greater_than_or_equal_to: 0 }
 end

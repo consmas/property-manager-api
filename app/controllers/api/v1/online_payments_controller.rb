@@ -24,7 +24,7 @@ module Api
           tenant: tenant,
           invoice: invoice,
           initiated_by_user: Current.user,
-          amount_cents: create_params.fetch(:amount_cents).to_i,
+          amount: create_params.fetch(:amount).to_d,
           purpose: create_params.fetch(:purpose),
           channel: create_params.fetch(:channel),
           provider: create_params[:provider] || "hubtel"
@@ -81,7 +81,7 @@ module Api
           :property_id,
           :tenant_id,
           :invoice_id,
-          :amount_cents,
+          :amount,
           :purpose,
           :channel,
           :provider

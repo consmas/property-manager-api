@@ -27,10 +27,10 @@ class Invoice < ApplicationRecord
 
   validates :invoice_number, :issue_date, :due_date, presence: true
   validates :invoice_number, uniqueness: true
-  validates :total_cents, :balance_cents,
-    numericality: { greater_than_or_equal_to: 0, only_integer: true }
+  validates :total, :balance,
+    numericality: { greater_than_or_equal_to: 0 }
 
-  scope :open_balance, -> { where("balance_cents > 0") }
+  scope :open_balance, -> { where("balance > 0") }
   scope :oldest_first, -> { order(:due_date, :created_at) }
 
   before_validation :sync_balance_from_total, on: :create
@@ -38,6 +38,6 @@ class Invoice < ApplicationRecord
   private
 
   def sync_balance_from_total
-    self.balance_cents = total_cents if balance_cents.nil?
+    self.balance = total if balance.nil?
   end
 end

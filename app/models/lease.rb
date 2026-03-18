@@ -15,10 +15,10 @@ class Lease < ApplicationRecord
     terminated: 3
   }, prefix: true
 
-  validates :start_date, :end_date, :plan_months, :rent_cents, presence: true
+  validates :start_date, :end_date, :plan_months, :rent, presence: true
   validates :plan_months, inclusion: { in: PLAN_MONTHS }
-  validates :rent_cents, :security_deposit_cents,
-    numericality: { greater_than_or_equal_to: 0, only_integer: true }
+  validates :rent, :security_deposit,
+    numericality: { greater_than_or_equal_to: 0 }
   validate :end_after_start
 
   scope :active, -> { where(status: statuses[:active]) }

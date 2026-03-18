@@ -27,10 +27,10 @@ class OnlinePayment < ApplicationRecord
     expired: 4
   }, prefix: true
 
-  validates :reference, :provider, :amount_cents, :currency, presence: true
+  validates :reference, :provider, :amount, :currency, presence: true
   validates :reference, uniqueness: true
   validates :provider, inclusion: { in: PROVIDERS }
-  validates :amount_cents, numericality: { greater_than: 0, only_integer: true }
+  validates :amount, numericality: { greater_than: 0 }
 
   scope :recent_first, -> { order(created_at: :desc) }
 end
