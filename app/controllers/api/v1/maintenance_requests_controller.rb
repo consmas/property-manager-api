@@ -32,6 +32,12 @@ module Api
         render_resource(request_record)
       end
 
+      def destroy
+        request_record = scope_by_property(MaintenanceRequest.all).find(params[:id])
+        request_record.destroy!
+        head :no_content
+      end
+
       private
 
       def maintenance_request_params

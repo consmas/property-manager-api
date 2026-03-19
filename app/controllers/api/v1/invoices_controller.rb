@@ -43,6 +43,12 @@ module Api
         render_resource(invoice)
       end
 
+      def destroy
+        invoice = scope_by_property(Invoice.all).find(params[:id])
+        invoice.destroy!
+        head :no_content
+      end
+
       private
 
       def invoice_params

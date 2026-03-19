@@ -11,20 +11,20 @@ Rails.application.routes.draw do
       post "payment_webhooks/hubtel", to: "payment_webhooks#hubtel"
       post "payment_webhooks/zeepay", to: "payment_webhooks#zeepay"
 
-      resources :properties, only: %i[index show create update]
-      resources :users, only: %i[index show create update]
+      resources :properties, only: %i[index show create update destroy]
+      resources :users, only: %i[index show create update destroy]
       resources :property_memberships, only: %i[index show create update]
-      resources :units, only: %i[index show create update] do
+      resources :units, only: %i[index show create update destroy] do
         collection { post :bulk_create }
       end
-      resources :tenants, only: %i[index show create update]
+      resources :tenants, only: %i[index show create update destroy]
       resources :leases, only: %i[index show create update destroy]
       resources :rent_installments, only: %i[index show]
-      resources :invoices, only: %i[index show create update] do
+      resources :invoices, only: %i[index show create update destroy] do
         resources :invoice_items, only: %i[create]
       end
       resources :invoice_items, only: %i[update destroy]
-      resources :payments, only: %i[index show create]
+      resources :payments, only: %i[index show create destroy]
       resources :online_payments, only: %i[index show create] do
         member do
           post :confirm
@@ -34,7 +34,7 @@ Rails.application.routes.draw do
       resources :payment_allocations, only: %i[index show]
       resources :meter_readings, only: %i[index show create update]
       resources :pump_topups, only: %i[index show create update]
-      resources :maintenance_requests, only: %i[index show create update]
+      resources :maintenance_requests, only: %i[index show create update destroy]
       resources :audit_logs, only: %i[index show]
       post "billing/water_invoices", to: "billing#create_water_invoices"
     end

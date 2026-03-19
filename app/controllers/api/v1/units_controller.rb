@@ -28,9 +28,11 @@ module Api
         return if performed?
 
         units_attrs = Array(params[:units]).map do |u|
-          ActionController::Parameters.new(u).permit(
+          attrs = ActionController::Parameters.new(u).permit(
             :property_id, :unit_number, :name, :unit_type, :status, :monthly_rent
           ).merge(property_id: property_id)
+          attrs[:status] = normalize_unit_status(attrs[:status]) if attrs[:status]
+          attrs
         end
 
         created = Unit.transaction { units_attrs.map { |attrs| Unit.create!(attrs) } }
@@ -48,7 +50,27 @@ module Api
         render_resource(unit)
       end
 
+      def destroy
+        unit = scope_by_property(Unit.all).find(params[:id])
+        authorize_property_access!(unit.property_id)
+        return if performed?
+
+        unit.destroy!
+        head :no_content
+      end
+
       private
+
+      FRONTEND_STATUS_MAP = {
+        'vacant' => 'available',
+        'reserved' => 'inactive',
+        'maintenance' => 'under_maintenance',
+        'unavailable' => 'inactive',
+      }.freeze
+
+      def normalize_unit_status(status)
+        FRONTEND_STATUS_MAP.fetch(status.to_s.downcase, status.to_s)
+      end
 
       def unit_params
         extract_resource_params(

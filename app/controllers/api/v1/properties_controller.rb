@@ -27,6 +27,12 @@ module Api
         render_resource(property)
       end
 
+      def destroy
+        property = scoped_properties.find(params[:id])
+        property.destroy!
+        head :no_content
+      end
+
       private
 
       def property_params

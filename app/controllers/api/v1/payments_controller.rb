@@ -26,6 +26,12 @@ module Api
         render_resource(payment, status: :created)
       end
 
+      def destroy
+        payment = scope_by_property(Payment.all).find(params[:id])
+        payment.destroy!
+        head :no_content
+      end
+
       private
 
       def payment_params

@@ -31,6 +31,15 @@ module Api
         render_resource(tenant)
       end
 
+      def destroy
+        tenant = scope_by_property(Tenant.all).find(params[:id])
+        authorize_property_access!(tenant.property_id)
+        return if performed?
+
+        tenant.destroy!
+        head :no_content
+      end
+
       private
 
       def tenant_params
