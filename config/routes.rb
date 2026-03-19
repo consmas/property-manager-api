@@ -14,7 +14,9 @@ Rails.application.routes.draw do
       resources :properties, only: %i[index show create update]
       resources :users, only: %i[index show create update]
       resources :property_memberships, only: %i[index show create update]
-      resources :units, only: %i[index show create update]
+      resources :units, only: %i[index show create update] do
+        collection { post :bulk_create }
+      end
       resources :tenants, only: %i[index show create update]
       resources :leases, only: %i[index show create update destroy]
       resources :rent_installments, only: %i[index show]

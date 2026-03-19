@@ -20,6 +20,23 @@ module Api
         render_resource(unit, status: :created)
       end
 
+      def bulk_create
+        property_id = params[:property_id].presence ||
+                      Array(params[:units]).first&.dig(:property_id)
+
+        authorize_property_access!(property_id)
+        return if performed?
+
+        units_attrs = Array(params[:units]).map do |u|
+          ActionController::Parameters.new(u).permit(
+            :property_id, :unit_number, :name, :unit_type, :status, :monthly_rent
+          ).merge(property_id: property_id)
+        end
+
+        created = Unit.transaction { units_attrs.map { |attrs| Unit.create!(attrs) } }
+        render_collection(created, status: :created)
+      end
+
       def update
         unit = scope_by_property(Unit.all).find(params[:id])
         unit.assign_attributes(unit_params)
