@@ -23,6 +23,10 @@ class Lease < ApplicationRecord
 
   scope :active, -> { where(status: statuses[:active]) }
 
+  def as_json(options = {})
+    super(options).merge('unit_number' => unit&.unit_number)
+  end
+
   private
 
   def end_after_start
