@@ -28,7 +28,7 @@ module Api
         return if performed?
 
         units_attrs = Array(params[:units]).map do |u|
-          attrs = ActionController::Parameters.new(u).permit(
+          attrs = u.permit(
             :property_id, :unit_number, :name, :unit_type, :status, :monthly_rent
           ).merge(property_id: property_id)
           attrs[:status] = normalize_unit_status(attrs[:status]) if attrs[:status]
