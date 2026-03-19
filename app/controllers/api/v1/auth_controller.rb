@@ -98,6 +98,17 @@ module Api
         }, status: :ok
       end
 
+      def me
+        token = request.headers["Authorization"].to_s.split(" ").last
+        payload = Jwt::TokenDecoder.call(token:)
+        user = User.active.find(payload.fetch("sub"))
+        render_resource(user)
+      rescue Jwt::TokenDecoder::DecodeError => e
+        render_jsonapi_errors([{ title: "Unauthorized", detail: e.message }], status: :unauthorized)
+      rescue ActiveRecord::RecordNotFound
+        render_jsonapi_errors([{ title: "Unauthorized", detail: "User not found" }], status: :unauthorized)
+      end
+
       def logout
         token = refresh_params[:refresh_token].to_s
         RefreshToken.active.find_by(token_digest: Auth::TokenDigester.call(token))&.revoke!

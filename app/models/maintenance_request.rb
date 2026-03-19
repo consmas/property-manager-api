@@ -21,4 +21,12 @@ class MaintenanceRequest < ApplicationRecord
   validates :title, :requested_at, presence: true
 
   scope :pending, -> { where(status: [statuses[:open], statuses[:in_progress]]) }
+
+  before_validation :set_requested_at, on: :create
+
+  private
+
+  def set_requested_at
+    self.requested_at ||= Time.current
+  end
 end

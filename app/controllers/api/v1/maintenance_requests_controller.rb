@@ -38,7 +38,7 @@ module Api
         extract_resource_params(
           :maintenance_request,
           :property_id, :unit_id, :tenant_id, :title, :description,
-          :priority, :status, :requested_at, :resolved_at
+          :category, :priority, :status, :requested_at, :resolved_at
         )
       end
     end

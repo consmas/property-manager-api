@@ -33,6 +33,15 @@ class Invoice < ApplicationRecord
   scope :open_balance, -> { where("balance > 0") }
   scope :oldest_first, -> { order(:due_date, :created_at) }
 
+  def as_json(options = {})
+    super(options).merge(
+      'line_items' => invoice_items.map do |item|
+        amount = item.respond_to?(:line_total) ? item.line_total.to_f : item.line_total_cents.to_f / 100
+        { 'description' => item.description, 'amount' => amount }
+      end
+    )
+  end
+
   before_validation :sync_balance_from_total, on: :create
 
   private

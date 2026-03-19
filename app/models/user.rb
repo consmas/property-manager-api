@@ -19,6 +19,10 @@ class User < ApplicationRecord
 
   scope :active, -> { where(active: true) }
 
+  def as_json(options = {})
+    super(options).merge('name' => full_name)
+  end
+
   before_validation :normalize_email
 
   def can_access_property?(property_id)

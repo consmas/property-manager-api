@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       post "auth/register", to: "auth#register"
       post "auth/refresh", to: "auth#refresh"
       delete "auth/logout", to: "auth#logout"
+      get "auth/me", to: "auth#me"
       post "payment_webhooks/hubtel", to: "payment_webhooks#hubtel"
       post "payment_webhooks/zeepay", to: "payment_webhooks#zeepay"
 
