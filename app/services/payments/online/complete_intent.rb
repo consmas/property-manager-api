@@ -2,10 +2,9 @@ module Payments
   module Online
     class CompleteIntent
       def self.call(online_payment:, provider_reference:, callback_payload:, paid_at: Time.current)
-        raise ArgumentError, "Online payment not pending" unless online_payment.status_pending?
-
         Payment.transaction do
           online_payment.lock!
+          raise ArgumentError, "Online payment not pending" unless online_payment.status_pending?
 
           payment = Payment.create!(
             property: online_payment.property,

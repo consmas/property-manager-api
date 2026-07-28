@@ -43,9 +43,10 @@ Rails.application.configure do
   # Replace the default in-process memory cache store with a durable alternative.
   config.cache_store = :solid_cache_store
 
-  # Replace the default in-process and non-durable queuing backend for Active Job.
-  config.active_job.queue_adapter = :solid_queue
-  config.solid_queue.connects_to = { database: { writing: :queue } }
+  # Match the production Compose worker. Set ACTIVE_JOB_QUEUE_ADAPTER=solid_queue
+  # only when a Solid Queue worker/supervisor is deployed.
+  config.active_job.queue_adapter = ENV.fetch("ACTIVE_JOB_QUEUE_ADAPTER", "sidekiq").to_sym
+  config.solid_queue.connects_to = { database: { writing: :queue } } if config.active_job.queue_adapter == :solid_queue
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

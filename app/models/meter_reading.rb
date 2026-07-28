@@ -18,6 +18,7 @@ class MeterReading < ApplicationRecord
     numericality: { greater_than_or_equal_to: 0 }
   validates :rate_per_unit, :amount,
     numericality: { greater_than_or_equal_to: 0 }
+  validates_same_property :unit
 
   before_validation :compute_usage_and_amount
 

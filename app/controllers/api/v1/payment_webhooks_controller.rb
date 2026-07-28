@@ -20,12 +20,16 @@ module Api
         status_value = extract_status(payload)
 
         if success_status?(status_value)
+          return already_processed_response unless online_payment.status_pending?
+
           Payments::Online::CompleteIntent.call(
             online_payment: online_payment,
             provider_reference: extract_provider_reference(payload) || online_payment.provider_reference,
             callback_payload: payload
           )
         elsif failure_status?(status_value)
+          return already_processed_response unless online_payment.status_pending?
+
           online_payment.update!(
             status: :failed,
             provider_reference: extract_provider_reference(payload) || online_payment.provider_reference,
@@ -88,6 +92,10 @@ module Api
 
       def failure_status?(value)
         %w[failed fail error declined cancelled canceled].include?(value.to_s.downcase)
+      end
+
+      def already_processed_response
+        render json: { data: { type: "webhook_events", attributes: { status: "ignored", reason: "already_processed" } } }, status: :ok
       end
     end
   end

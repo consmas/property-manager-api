@@ -9,7 +9,7 @@ This runbook deploys `property-manager-api` with strict isolation from existing 
   Dockerfile
   docker-compose.production.yml
   .env.production
-  deploy/nginx/propertyapi.consmas.com.conf
+  deploy/nginx/propertyapi.rohodev.com.conf
   docs/ops/property-manager-api-production-runbook.md
   backups/
 ```
@@ -32,34 +32,34 @@ Fill `.env.production` securely (never commit).
 ```bash
 cd /opt/property-manager-api
 
-docker compose -p property-manager -f docker-compose.production.yml build
-docker compose -p property-manager -f docker-compose.production.yml up -d
+docker-compose -p property-manager -f docker-compose.production.yml build
+docker-compose -p property-manager -f docker-compose.production.yml up -d
 
-docker compose -p property-manager -f docker-compose.production.yml run --rm api bin/rails db:migrate
+docker-compose -p property-manager -f docker-compose.production.yml run --rm api bin/rails db:migrate
 # Run seed only if idempotent and approved:
-# docker compose -p property-manager -f docker-compose.production.yml run --rm api bin/rails db:seed
+# docker-compose -p property-manager -f docker-compose.production.yml run --rm api bin/rails db:seed
 ```
 
 ## 4) Reverse Proxy + TLS (Nginx)
 
 ```bash
-sudo cp deploy/nginx/propertyapi.consmas.com.conf /etc/nginx/sites-available/propertyapi.consmas.com
-sudo ln -s /etc/nginx/sites-available/propertyapi.consmas.com /etc/nginx/sites-enabled/propertyapi.consmas.com
+sudo cp deploy/nginx/propertyapi.rohodev.com.conf /etc/nginx/sites-available/propertyapi.rohodev.com
+sudo ln -s /etc/nginx/sites-available/propertyapi.rohodev.com /etc/nginx/sites-enabled/propertyapi.rohodev.com
 sudo nginx -t
 sudo systemctl reload nginx
 
 # Certbot example
-sudo certbot --nginx -d propertyapi.consmas.com
+sudo certbot --nginx -d propertyapi.rohodev.com
 ```
 
 ## 5) Health Checks
 
 ```bash
-docker compose -p property-manager -f docker-compose.production.yml ps
-docker compose -p property-manager -f docker-compose.production.yml logs --tail=200 api
-docker compose -p property-manager -f docker-compose.production.yml logs --tail=200 sidekiq
+docker-compose -p property-manager -f docker-compose.production.yml ps
+docker-compose -p property-manager -f docker-compose.production.yml logs --tail=200 api
+docker-compose -p property-manager -f docker-compose.production.yml logs --tail=200 sidekiq
 curl -fsS http://127.0.0.1:3011/up
-curl -fsS https://propertyapi.consmas.com/up
+curl -fsS https://propertyapi.rohodev.com/up
 ```
 
 Expected:
@@ -88,7 +88,7 @@ Also compare:
 ```bash
 mkdir -p /opt/property-manager-api/backups
 
-docker compose -p property-manager -f docker-compose.production.yml exec -T db \
+docker-compose -p property-manager -f docker-compose.production.yml exec -T db \
   pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" \
   > /opt/property-manager-api/backups/property_manager_$(date +%F_%H%M%S).sql
 ```
@@ -103,11 +103,11 @@ cd /opt/property-manager-api
 git fetch origin
 git pull --no-rebase origin main
 
-docker compose -p property-manager -f docker-compose.production.yml build
-docker compose -p property-manager -f docker-compose.production.yml up -d
-docker compose -p property-manager -f docker-compose.production.yml run --rm api bin/rails db:migrate
+docker-compose -p property-manager -f docker-compose.production.yml build
+docker-compose -p property-manager -f docker-compose.production.yml up -d
+docker-compose -p property-manager -f docker-compose.production.yml run --rm api bin/rails db:migrate
 
-curl -fsS https://propertyapi.consmas.com/up
+curl -fsS https://propertyapi.rohodev.com/up
 ```
 
 ## 9) Rollback Procedure
@@ -126,13 +126,13 @@ cd /opt/property-manager-api
 git log --oneline -n 10
 git checkout <previous-good-commit>
 
-docker compose -p property-manager -f docker-compose.production.yml build
-docker compose -p property-manager -f docker-compose.production.yml up -d
+docker-compose -p property-manager -f docker-compose.production.yml build
+docker-compose -p property-manager -f docker-compose.production.yml up -d
 
 # Optional rollback migration when explicitly validated:
-# docker compose -p property-manager -f docker-compose.production.yml run --rm api bin/rails db:rollback STEP=1
+# docker-compose -p property-manager -f docker-compose.production.yml run --rm api bin/rails db:rollback STEP=1
 
-curl -fsS https://propertyapi.consmas.com/up
+curl -fsS https://propertyapi.rohodev.com/up
 ```
 
 ## 10) Security Checklist
@@ -142,3 +142,5 @@ curl -fsS https://propertyapi.consmas.com/up
 - Firewall allows only 80/443 (+ SSH from trusted IPs).
 - Secrets are externalized and rotated before go-live.
 - Logs are reviewed for accidental secret leakage.
+- `CORS_ALLOWED_ORIGINS` contains browser origins, not only the API domain.
+- `ACTIVE_JOB_QUEUE_ADAPTER` matches the deployed worker service (`sidekiq` for this Compose stack).

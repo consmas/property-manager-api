@@ -29,15 +29,17 @@ class Invoice < ApplicationRecord
   validates :invoice_number, uniqueness: true
   validates :total, :balance,
     numericality: { greater_than_or_equal_to: 0 }
+  validate :balance_not_greater_than_total
+  validates_same_property :unit, :tenant, :lease
 
   scope :open_balance, -> { where("balance > 0") }
   scope :oldest_first, -> { order(:due_date, :created_at) }
 
   def as_json(options = {})
     super(options).merge(
-      'line_items' => invoice_items.map do |item|
+      "line_items" => invoice_items.map do |item|
         amount = item.respond_to?(:line_total) ? item.line_total.to_f : item.line_total_cents.to_f / 100
-        { 'description' => item.description, 'amount' => amount }
+        { "description" => item.description, "amount" => amount }
       end
     )
   end
@@ -48,5 +50,12 @@ class Invoice < ApplicationRecord
 
   def sync_balance_from_total
     self.balance = total if balance.nil?
+  end
+
+  def balance_not_greater_than_total
+    return if balance.blank? || total.blank?
+    return if balance <= total
+
+    errors.add(:balance, "cannot exceed total")
   end
 end

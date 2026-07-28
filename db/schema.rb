@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_19_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -35,16 +35,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.integer "item_type", default: 0, null: false
     t.string "description", null: false
     t.integer "quantity", default: 1, null: false
-    t.integer "unit_amount_cents", null: false
-    t.integer "line_total_cents", null: false
+    t.decimal "unit_amount", precision: 12, scale: 2, null: false
+    t.decimal "line_total", precision: 12, scale: 2, null: false
     t.date "service_period_start"
     t.date "service_period_end"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["invoice_id"], name: "index_invoice_items_on_invoice_id"
-    t.check_constraint "line_total_cents >= 0", name: "chk_invoice_items_line_non_negative"
+    t.check_constraint "line_total >= 0::numeric", name: "chk_invoice_items_line_non_negative"
     t.check_constraint "quantity > 0", name: "chk_invoice_items_quantity_positive"
-    t.check_constraint "unit_amount_cents >= 0", name: "chk_invoice_items_unit_non_negative"
+    t.check_constraint "unit_amount >= 0::numeric", name: "chk_invoice_items_unit_non_negative"
   end
 
   create_table "invoices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -57,8 +57,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.integer "status", default: 0, null: false
     t.date "issue_date", null: false
     t.date "due_date", null: false
-    t.integer "total_cents", default: 0, null: false
-    t.integer "balance_cents", default: 0, null: false
+    t.decimal "total", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "balance", precision: 12, scale: 2, default: "0.0", null: false
     t.string "currency", default: "GHS", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -68,8 +68,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.index ["property_id"], name: "index_invoices_on_property_id"
     t.index ["tenant_id"], name: "index_invoices_on_tenant_id"
     t.index ["unit_id"], name: "index_invoices_on_unit_id"
-    t.check_constraint "balance_cents >= 0", name: "chk_invoices_balance_non_negative"
-    t.check_constraint "total_cents >= 0", name: "chk_invoices_total_non_negative"
+    t.check_constraint "balance >= 0::numeric", name: "chk_invoices_balance_non_negative"
+    t.check_constraint "total >= 0::numeric", name: "chk_invoices_total_non_negative"
   end
 
   create_table "leases", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -80,8 +80,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.date "end_date", null: false
     t.integer "plan_months", null: false
     t.integer "status", default: 0, null: false
-    t.integer "rent_cents", null: false
-    t.integer "security_deposit_cents", default: 0, null: false
+    t.decimal "rent", precision: 12, scale: 2, null: false
+    t.decimal "security_deposit", precision: 12, scale: 2, default: "0.0", null: false
     t.date "paid_through_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -90,8 +90,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.index ["tenant_id"], name: "index_leases_on_tenant_id"
     t.index ["unit_id", "status"], name: "index_leases_on_unit_id_and_status"
     t.index ["unit_id"], name: "index_leases_on_unit_id"
-    t.check_constraint "rent_cents >= 0", name: "chk_leases_rent_non_negative"
-    t.check_constraint "security_deposit_cents >= 0", name: "chk_leases_deposit_non_negative"
+    t.check_constraint "rent >= 0::numeric", name: "chk_leases_rent_non_negative"
+    t.check_constraint "security_deposit >= 0::numeric", name: "chk_leases_deposit_non_negative"
   end
 
   create_table "maintenance_requests", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -101,6 +101,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.uuid "reported_by_user_id"
     t.string "title", null: false
     t.text "description"
+    t.string "category"
     t.integer "priority", default: 1, null: false
     t.integer "status", default: 0, null: false
     t.datetime "requested_at", null: false
@@ -122,16 +123,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.decimal "previous_reading", precision: 12, scale: 2
     t.decimal "current_reading", precision: 12, scale: 2, null: false
     t.decimal "consumption_units", precision: 12, scale: 2, default: "0.0", null: false
-    t.integer "rate_cents_per_unit", default: 0, null: false
-    t.integer "amount_cents", default: 0, null: false
+    t.decimal "rate_per_unit", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "amount", precision: 12, scale: 2, default: "0.0", null: false
     t.integer "status", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["property_id", "unit_id", "meter_type", "reading_date"], name: "idx_meter_readings_uniq", unique: true
     t.index ["property_id"], name: "index_meter_readings_on_property_id"
     t.index ["unit_id"], name: "index_meter_readings_on_unit_id"
-    t.check_constraint "amount_cents >= 0", name: "chk_meter_readings_amount_non_negative"
-    t.check_constraint "rate_cents_per_unit >= 0", name: "chk_meter_readings_rate_non_negative"
+    t.check_constraint "amount >= 0::numeric", name: "chk_meter_readings_amount_non_negative"
+    t.check_constraint "rate_per_unit >= 0::numeric", name: "chk_meter_readings_rate_non_negative"
   end
 
   create_table "online_payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -145,7 +146,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.integer "channel", default: 0, null: false
     t.integer "purpose", default: 0, null: false
     t.integer "status", default: 0, null: false
-    t.integer "amount_cents", null: false
+    t.decimal "amount", precision: 12, scale: 2, null: false
     t.string "currency", default: "GHS", null: false
     t.string "provider_reference"
     t.string "checkout_url"
@@ -163,20 +164,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.index ["provider_reference"], name: "index_online_payments_on_provider_reference"
     t.index ["reference"], name: "index_online_payments_on_reference", unique: true
     t.index ["tenant_id"], name: "index_online_payments_on_tenant_id"
-    t.check_constraint "amount_cents > 0", name: "chk_online_payments_amount_positive"
+    t.check_constraint "amount > 0::numeric", name: "chk_online_payments_amount_positive"
   end
 
   create_table "payment_allocations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "payment_id", null: false
     t.uuid "invoice_id", null: false
-    t.integer "amount_cents", null: false
+    t.decimal "amount", precision: 12, scale: 2, null: false
     t.datetime "allocated_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["invoice_id"], name: "index_payment_allocations_on_invoice_id"
     t.index ["payment_id", "invoice_id"], name: "index_payment_allocations_on_payment_id_and_invoice_id"
     t.index ["payment_id"], name: "index_payment_allocations_on_payment_id"
-    t.check_constraint "amount_cents > 0", name: "chk_payment_allocations_amount_positive"
+    t.check_constraint "amount > 0::numeric", name: "chk_payment_allocations_amount_positive"
   end
 
   create_table "payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -186,8 +187,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.string "reference", null: false
     t.integer "payment_method", default: 0, null: false
     t.integer "status", default: 0, null: false
-    t.integer "amount_cents", null: false
-    t.integer "unallocated_cents", null: false
+    t.decimal "amount", precision: 12, scale: 2, null: false
+    t.decimal "unallocated", precision: 12, scale: 2, null: false
     t.datetime "paid_at", null: false
     t.text "notes"
     t.datetime "created_at", null: false
@@ -197,8 +198,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.index ["received_by_user_id"], name: "index_payments_on_received_by_user_id"
     t.index ["reference"], name: "index_payments_on_reference", unique: true
     t.index ["tenant_id"], name: "index_payments_on_tenant_id"
-    t.check_constraint "amount_cents >= 0", name: "chk_payments_amount_non_negative"
-    t.check_constraint "unallocated_cents >= 0", name: "chk_payments_unallocated_non_negative"
+    t.check_constraint "amount >= 0::numeric", name: "chk_payments_amount_non_negative"
+    t.check_constraint "unallocated >= 0::numeric", name: "chk_payments_unallocated_non_negative"
   end
 
   create_table "properties", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -232,14 +233,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.uuid "property_id", null: false
     t.date "topup_date", null: false
     t.decimal "quantity_liters", precision: 12, scale: 2, null: false
-    t.integer "cost_cents", null: false
+    t.decimal "cost", precision: 12, scale: 2, null: false
     t.string "reference"
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["property_id", "topup_date"], name: "index_pump_topups_on_property_id_and_topup_date"
     t.index ["property_id"], name: "index_pump_topups_on_property_id"
-    t.check_constraint "cost_cents >= 0", name: "chk_pump_topups_cost_non_negative"
+    t.check_constraint "cost >= 0::numeric", name: "chk_pump_topups_cost_non_negative"
     t.check_constraint "quantity_liters >= 0::numeric", name: "chk_pump_topups_quantity_non_negative"
   end
 
@@ -263,7 +264,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.uuid "lease_id", null: false
     t.integer "sequence_number", null: false
     t.date "due_date", null: false
-    t.integer "amount_cents", null: false
+    t.decimal "amount", precision: 12, scale: 2, null: false
     t.integer "status", default: 0, null: false
     t.uuid "invoice_id"
     t.datetime "created_at", null: false
@@ -272,7 +273,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.index ["invoice_id"], name: "index_rent_installments_on_invoice_id"
     t.index ["lease_id", "sequence_number"], name: "index_rent_installments_on_lease_id_and_sequence_number", unique: true
     t.index ["lease_id"], name: "index_rent_installments_on_lease_id"
-    t.check_constraint "amount_cents >= 0", name: "chk_rent_installments_amount_non_negative"
+    t.check_constraint "amount >= 0::numeric", name: "chk_rent_installments_amount_non_negative"
   end
 
   create_table "tenants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -295,16 +296,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_121500) do
     t.string "unit_number", null: false
     t.string "name"
     t.integer "status", default: 0, null: false
-    t.integer "bedrooms"
-    t.integer "bathrooms"
-    t.integer "monthly_rent_cents", default: 0, null: false
+    t.decimal "monthly_rent", precision: 12, scale: 2, default: "0.0", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "unit_type", default: 0, null: false
     t.index ["property_id", "unit_number"], name: "index_units_on_property_id_and_unit_number", unique: true
     t.index ["property_id", "unit_type"], name: "index_units_on_property_id_and_unit_type"
     t.index ["property_id"], name: "index_units_on_property_id"
-    t.check_constraint "monthly_rent_cents >= 0", name: "chk_units_monthly_rent_non_negative"
+    t.check_constraint "monthly_rent >= 0::numeric", name: "chk_units_monthly_rent_non_negative"
     t.check_constraint "unit_type = ANY (ARRAY[0, 1, 2])", name: "chk_units_unit_type_valid"
   end
 

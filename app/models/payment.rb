@@ -23,4 +23,15 @@ class Payment < ApplicationRecord
   validates :reference, uniqueness: true
   validates :amount, :unallocated,
     numericality: { greater_than_or_equal_to: 0 }
+  validate :unallocated_not_greater_than_amount
+  validates_same_property :tenant
+
+  private
+
+  def unallocated_not_greater_than_amount
+    return if unallocated.blank? || amount.blank?
+    return if unallocated <= amount
+
+    errors.add(:unallocated, "cannot exceed amount")
+  end
 end

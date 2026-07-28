@@ -19,6 +19,7 @@ class MaintenanceRequest < ApplicationRecord
   }, prefix: true
 
   validates :title, :requested_at, presence: true
+  validates_same_property :unit, :tenant
 
   scope :pending, -> { where(status: [statuses[:open], statuses[:in_progress]]) }
 

@@ -30,8 +30,13 @@ module JsonApiRenderable
       {
         id: record.id,
         type: record.class.name.underscore.pluralize,
-        attributes: record.as_json(except: %w[id])
+        attributes: record.as_json(except: sensitive_attribute_names(record))
       }
     end
+  end
+
+  def sensitive_attribute_names(record)
+    %w[id password_digest token_digest jti]
+      .select { |attribute_name| record.respond_to?(attribute_name) }
   end
 end

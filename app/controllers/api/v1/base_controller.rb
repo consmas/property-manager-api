@@ -8,6 +8,7 @@ module Api
       def authenticate_request!
         token = request.headers["Authorization"].to_s.split(" ").last
         payload = Jwt::TokenDecoder.call(token:)
+        raise Jwt::TokenDecoder::DecodeError, "Invalid token type" unless payload["type"] == "access"
 
         Current.user = User.active.find(payload.fetch("sub"))
       rescue Jwt::TokenDecoder::DecodeError => e

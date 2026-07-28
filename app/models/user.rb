@@ -20,7 +20,7 @@ class User < ApplicationRecord
   scope :active, -> { where(active: true) }
 
   def as_json(options = {})
-    super(options).merge('name' => full_name)
+    super({ except: %w[password_digest] }.merge(options)).merge("name" => full_name)
   end
 
   before_validation :normalize_email

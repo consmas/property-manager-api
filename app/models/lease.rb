@@ -20,11 +20,12 @@ class Lease < ApplicationRecord
   validates :rent, :security_deposit,
     numericality: { greater_than_or_equal_to: 0 }
   validate :end_after_start
+  validates_same_property :unit, :tenant
 
   scope :active, -> { where(status: statuses[:active]) }
 
   def as_json(options = {})
-    super(options).merge('unit_number' => unit&.unit_number)
+    super(options).merge("unit_number" => unit&.unit_number)
   end
 
   private

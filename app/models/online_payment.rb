@@ -31,6 +31,7 @@ class OnlinePayment < ApplicationRecord
   validates :reference, uniqueness: true
   validates :provider, inclusion: { in: PROVIDERS }
   validates :amount, numericality: { greater_than: 0 }
+  validates_same_property :tenant, :invoice
 
   scope :recent_first, -> { order(created_at: :desc) }
 end

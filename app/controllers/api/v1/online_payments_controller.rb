@@ -16,8 +16,8 @@ module Api
 
       def create
         property = scoped_properties.find(create_params.fetch(:property_id))
-        tenant = create_params[:tenant_id].present? ? Tenant.find_by(id: create_params[:tenant_id], property_id: property.id) : nil
-        invoice = create_params[:invoice_id].present? ? Invoice.find_by(id: create_params[:invoice_id], property_id: property.id) : nil
+        tenant = create_params[:tenant_id].present? ? Tenant.find_by!(id: create_params[:tenant_id], property_id: property.id) : nil
+        invoice = create_params[:invoice_id].present? ? Invoice.find_by!(id: create_params[:invoice_id], property_id: property.id) : nil
 
         online_payment = Payments::Online::CreateIntent.call(
           property: property,
@@ -63,6 +63,8 @@ module Api
 
       def fail
         online_payment = scope_by_property(OnlinePayment.all).find(params[:id])
+        return render_resource(online_payment) unless online_payment.status_pending?
+
         online_payment.update!(
           status: :failed,
           provider_reference: fail_params[:provider_reference],
